@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/uploads/apple-touch-icon-next.jpg?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/uploads/favicon-32x32-next.jpg?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/uploads/favicon-16x16-next.jpg?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="java,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="我们之前介绍过了MyBatis 四大核心配置之 Executor、StatementHandler、 ParameterHandler，今天本文的主题是介绍一下 MyBatis 最后一个神器也就是 ResultSetHandler。那么开始我们的讨论">
+<meta name="keywords" content="java">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MyBatis 核心配置综述之 ResultSetHandler">
+<meta property="og:url" content="http://www.itwanger.com/2019/08/20/2019-07-29-mybatis-resultsethandler/index.html">
+<meta property="og:site_name" content="沉默王二">
+<meta property="og:description" content="我们之前介绍过了MyBatis 四大核心配置之 Executor、StatementHandler、 ParameterHandler，今天本文的主题是介绍一下 MyBatis 最后一个神器也就是 ResultSetHandler。那么开始我们的讨论">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://www.justdojava.com/assets/images/2019/java/image-cxuan/mybatis/resultsethandler/01.png">
+<meta property="og:updated_time" content="2019-08-02T04:32:28.032Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="MyBatis 核心配置综述之 ResultSetHandler">
+<meta name="twitter:description" content="我们之前介绍过了MyBatis 四大核心配置之 Executor、StatementHandler、 ParameterHandler，今天本文的主题是介绍一下 MyBatis 最后一个神器也就是 ResultSetHandler。那么开始我们的讨论">
+<meta name="twitter:image" content="http://www.justdojava.com/assets/images/2019/java/image-cxuan/mybatis/resultsethandler/01.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://www.itwanger.com/2019/08/20/2019-07-29-mybatis-resultsethandler/">
+
+
+
+
+
+  <title>MyBatis 核心配置综述之 ResultSetHandler | 沉默王二</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">沉默王二</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">一个有趣的程序员</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.itwanger.com/2019/08/20/2019-07-29-mybatis-resultsethandler/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="沉默王二">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/uploads/cmower.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="沉默王二">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">MyBatis 核心配置综述之 ResultSetHandler</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-20T14:49:40+08:00">
+                2019-08-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/mybatis/" itemprop="url" rel="index">
+                    <span itemprop="name">mybatis</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>我们之前介绍过了MyBatis 四大核心配置之 Executor、StatementHandler、 ParameterHandler，今天本文的主题是介绍一下 MyBatis 最后一个神器也就是 ResultSetHandler。那么开始我们的讨论</p>
+<a id="more"></a>
+
+<h2 id="ResultSetHandler-简介"><a href="#ResultSetHandler-简介" class="headerlink" title="ResultSetHandler 简介"></a>ResultSetHandler 简介</h2><p>回想一下，一条 SQL 的请求过程会经过哪几个步骤？ 首先会经过 Executor 执行器，它主要负责管理创建 StatementHandler 对象，然后由 StatementHandler 对象做数据库的连接以及生成 Statement 对象，并解析 SQL 参数，由 ParameterHandler 对象负责把 Mapper 方法中的参数映射到 XML 中的 SQL 语句中，那么是不是还少了一个步骤，就能完成一个完整的 SQL 请求了？没错，这最后一步就是 SQL 结果集的处理工作，也就是 <code>ResultSetHandler</code> 的主要工作</p>
+<p>要了解 ResultSetHandler 之前，首先需要了解 ResultSetHandler的继承关系以及基本方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">ResultSetHandler</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 处理结果集</span></span><br><span class="line">  &lt;E&gt; <span class="function">List&lt;E&gt; <span class="title">handleResultSets</span><span class="params">(Statement stmt)</span> <span class="keyword">throws</span> SQLException</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 批量处理结果集</span></span><br><span class="line">  &lt;E&gt; <span class="function">Cursor&lt;E&gt; <span class="title">handleCursorResultSets</span><span class="params">(Statement stmt)</span> <span class="keyword">throws</span> SQLException</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 处理存储过程的结果集</span></span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">handleOutputParameters</span><span class="params">(CallableStatement cs)</span> <span class="keyword">throws</span> SQLException</span>;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>ResultSetHandler是一个接口，它只有一个默认的实现类，像是 ParameterHandler 一样，它的默认实现类是DefaultResultSetHandler</p>
+</blockquote>
+<h2 id="ResultSetHandler-创建"><a href="#ResultSetHandler-创建" class="headerlink" title="ResultSetHandler 创建"></a>ResultSetHandler 创建</h2><p>ResultSetHandler 是在处理查询请求的时候由 Configuration 对象负责创建，示例如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="title">BaseStatementHandler</span><span class="params">(Executor executor, MappedStatement mappedStatement, Object parameterObject, RowBounds rowBounds, ResultHandler resultHandler, BoundSql boundSql)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">this</span>.configuration = mappedStatement.getConfiguration();</span><br><span class="line">  <span class="keyword">this</span>.executor = executor;</span><br><span class="line">  <span class="keyword">this</span>.mappedStatement = mappedStatement;</span><br><span class="line">  <span class="keyword">this</span>.rowBounds = rowBounds;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">this</span>.typeHandlerRegistry = configuration.getTypeHandlerRegistry();</span><br><span class="line">  <span class="keyword">this</span>.objectFactory = configuration.getObjectFactory();</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (boundSql == <span class="keyword">null</span>) &#123; <span class="comment">// issue #435, get the key before calculating the statement</span></span><br><span class="line">    generateKeys(parameterObject);</span><br><span class="line">    boundSql = mappedStatement.getBoundSql(parameterObject);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">this</span>.boundSql = boundSql;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 创建参数处理器</span></span><br><span class="line">  <span class="keyword">this</span>.parameterHandler = configuration.newParameterHandler(mappedStatement, parameterObject, boundSql);</span><br><span class="line">  <span class="comment">// 创建结果映射器</span></span><br><span class="line">  <span class="keyword">this</span>.resultSetHandler = configuration.newResultSetHandler(executor, mappedStatement, rowBounds, parameterHandler, resultHandler, boundSql);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> ResultSetHandler <span class="title">newResultSetHandler</span><span class="params">(Executor executor, MappedStatement mappedStatement, RowBounds rowBounds, ParameterHandler parameterHandler,</span></span></span><br><span class="line"><span class="function"><span class="params">      ResultHandler resultHandler, BoundSql boundSql)</span> </span>&#123;</span><br><span class="line">  <span class="comment">// 由 DefaultResultSetHandler 进行初始化</span></span><br><span class="line">  ResultSetHandler resultSetHandler = <span class="keyword">new</span> DefaultResultSetHandler(executor, mappedStatement, parameterHandler, resultHandler, boundSql, rowBounds);</span><br><span class="line">  resultSetHandler = (ResultSetHandler) interceptorChain.pluginAll(resultSetHandler);</span><br><span class="line">  <span class="keyword">return</span> resultSetHandler;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>上述的创建过程是对 ResultSetHandler 创建过程以及初始化的简单解释，下面是对具体的查询请求进行分析</p>
+</blockquote>
+<h2 id="ResultSetHandler-处理结果映射"><a href="#ResultSetHandler-处理结果映射" class="headerlink" title="ResultSetHandler 处理结果映射"></a>ResultSetHandler 处理结果映射</h2><p>回想一下，我们在进行传统crud操作的时候，哪些方法是需要返回值的？当然我们说的返回值指的是从数据库中查询出来的值，而不是标识符，应该只有查询方法吧？所以 MyBatis 只针对 query 方法做了返回值的映射，代码如下：</p>
+<p>PreparedStatementHandler.java  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> &lt;E&gt; <span class="function">List&lt;E&gt; <span class="title">query</span><span class="params">(Statement statement, ResultHandler resultHandler)</span> <span class="keyword">throws</span> SQLException </span>&#123;</span><br><span class="line">  PreparedStatement ps = (PreparedStatement) statement;</span><br><span class="line">  ps.execute();</span><br><span class="line">  <span class="comment">// 处理结果集</span></span><br><span class="line">  <span class="keyword">return</span> resultSetHandler.&lt;E&gt; handleResultSets(ps);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> &lt;E&gt; <span class="function">Cursor&lt;E&gt; <span class="title">queryCursor</span><span class="params">(Statement statement)</span> <span class="keyword">throws</span> SQLException </span>&#123;</span><br><span class="line">  PreparedStatement ps = (PreparedStatement) statement;</span><br><span class="line">  ps.execute();</span><br><span class="line">  <span class="comment">// 批量处理结果集</span></span><br><span class="line">  <span class="keyword">return</span> resultSetHandler.&lt;E&gt; handleCursorResultSets(ps);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>CallableStatementHandler.java 处理存储过程的SQL</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> &lt;E&gt; <span class="function">List&lt;E&gt; <span class="title">query</span><span class="params">(Statement statement, ResultHandler resultHandler)</span> <span class="keyword">throws</span> SQLException </span>&#123;</span><br><span class="line">  CallableStatement cs = (CallableStatement) statement;</span><br><span class="line">  cs.execute();</span><br><span class="line">  List&lt;E&gt; resultList = resultSetHandler.&lt;E&gt;handleResultSets(cs);</span><br><span class="line">  resultSetHandler.handleOutputParameters(cs);</span><br><span class="line">  <span class="keyword">return</span> resultList;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> &lt;E&gt; <span class="function">Cursor&lt;E&gt; <span class="title">queryCursor</span><span class="params">(Statement statement)</span> <span class="keyword">throws</span> SQLException </span>&#123;</span><br><span class="line">  CallableStatement cs = (CallableStatement) statement;</span><br><span class="line">  cs.execute();</span><br><span class="line">  Cursor&lt;E&gt; resultList = resultSetHandler.&lt;E&gt;handleCursorResultSets(cs);</span><br><span class="line">  resultSetHandler.handleOutputParameters(cs);</span><br><span class="line">  <span class="keyword">return</span> resultList;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="DefaultResultSetHandler-源码解析"><a href="#DefaultResultSetHandler-源码解析" class="headerlink" title="DefaultResultSetHandler 源码解析"></a>DefaultResultSetHandler 源码解析</h2><p>MyBatis 只有一个默认的实现类就是 <code>DefaultResultSetHandler</code>，ResultSetHandler 主要负责处理两件事</p>
+<ol>
+<li><p>处理 Statement 执行后产生的结果集，生成结果列表</p>
+</li>
+<li><p>处理存储过程执行后的输出参数</p>
+</li>
+</ol>
+<p>按照 Mapper 文件中配置的 ResultType 或 ResultMap 来封装成对应的对象，最后将封装的对象返回即可。</p>
+<p>来看一下主要的源码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> List&lt;Object&gt; <span class="title">handleResultSets</span><span class="params">(Statement stmt)</span> <span class="keyword">throws</span> SQLException </span>&#123;</span><br><span class="line">  ErrorContext.instance().activity(<span class="string">"handling results"</span>).object(mappedStatement.getId());</span><br><span class="line"></span><br><span class="line">  <span class="keyword">final</span> List&lt;Object&gt; multipleResults = <span class="keyword">new</span> ArrayList&lt;Object&gt;();</span><br><span class="line"></span><br><span class="line">  <span class="keyword">int</span> resultSetCount = <span class="number">0</span>;</span><br><span class="line">  <span class="comment">// 获取第一个结果集</span></span><br><span class="line">  ResultSetWrapper rsw = getFirstResultSet(stmt);</span><br><span class="line">  <span class="comment">// 获取结果映射</span></span><br><span class="line">  List&lt;ResultMap&gt; resultMaps = mappedStatement.getResultMaps();</span><br><span class="line">  <span class="comment">// 结果映射的大小</span></span><br><span class="line">  <span class="keyword">int</span> resultMapCount = resultMaps.size();</span><br><span class="line">  <span class="comment">// 校验结果映射的数量</span></span><br><span class="line">  validateResultMapsCount(rsw, resultMapCount);</span><br><span class="line">  <span class="comment">// 如果ResultSet 包装器不是null， 并且 resultmap 的数量  &gt;  resultSet 的数量的话</span></span><br><span class="line">  <span class="comment">// 因为 resultSetCount 第一次肯定是0，所以直接判断 ResultSetWrapper 是否为 0 即可</span></span><br><span class="line">  <span class="keyword">while</span> (rsw != <span class="keyword">null</span> &amp;&amp; resultMapCount &gt; resultSetCount) &#123;</span><br><span class="line">    <span class="comment">// 从 resultMap 中取出 resultSet 数量</span></span><br><span class="line">    ResultMap resultMap = resultMaps.get(resultSetCount);</span><br><span class="line">    <span class="comment">// 处理结果集, 关闭结果集</span></span><br><span class="line">    handleResultSet(rsw, resultMap, multipleResults, <span class="keyword">null</span>);</span><br><span class="line">    rsw = getNextResultSet(stmt);</span><br><span class="line">    cleanUpAfterHandlingResultSet();</span><br><span class="line">    resultSetCount++;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 从 mappedStatement 取出结果集</span></span><br><span class="line">  String[] resultSets = mappedStatement.getResultSets();</span><br><span class="line">  <span class="keyword">if</span> (resultSets != <span class="keyword">null</span>) &#123;</span><br><span class="line">    <span class="keyword">while</span> (rsw != <span class="keyword">null</span> &amp;&amp; resultSetCount &lt; resultSets.length) &#123;</span><br><span class="line">      ResultMapping parentMapping = nextResultMaps.get(resultSets[resultSetCount]);</span><br><span class="line">      <span class="keyword">if</span> (parentMapping != <span class="keyword">null</span>) &#123;</span><br><span class="line">        String nestedResultMapId = parentMapping.getNestedResultMapId();</span><br><span class="line">        ResultMap resultMap = configuration.getResultMap(nestedResultMapId);</span><br><span class="line">        handleResultSet(rsw, resultMap, <span class="keyword">null</span>, parentMapping);</span><br><span class="line">      &#125;</span><br><span class="line">      rsw = getNextResultSet(stmt);</span><br><span class="line">      cleanUpAfterHandlingResultSet();</span><br><span class="line">      resultSetCount++;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> collapseSingleResultList(multipleResults);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其中涉及的主要对象有：</p>
+<p><code>ResultSetWrapper</code> : 结果集的包装器，主要针对结果集进行的一层包装，它的主要属性有</p>
+<ul>
+<li>ResultSet : Java JDBC ResultSet接口表示数据库查询的结果。 有关查询的文本显示了如何将查询结果作为java.sql.ResultSet返回。 然后迭代此ResultSet以检查结果。</li>
+<li>TypeHandlerRegistry: 类型注册器，TypeHandlerRegistry 在初始化的时候会把所有的 Java类型和类型转换器进行注册。</li>
+<li>ColumnNames: 字段的名称，也就是查询操作需要返回的字段名称</li>
+<li>ClassNames: 字段的类型名称，也就是 ColumnNames 每个字段名称的类型</li>
+<li>JdbcTypes:  JDBC 的类型，也就是java.sql.Types 类型 </li>
+</ul>
+<p><code>ResultMap</code>: 负责处理更复杂的映射关系</p>
+<p><code>multipleResults</code>: </p>
+<p>其中的主要方法是 handleResultSet </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">handleResultSet</span><span class="params">(ResultSetWrapper rsw, ResultMap resultMap, List&lt;Object&gt; multipleResults, ResultMapping parentMapping)</span> <span class="keyword">throws</span> SQLException </span>&#123;</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (parentMapping != <span class="keyword">null</span>) &#123;</span><br><span class="line">      <span class="comment">// 处理多行结果的值</span></span><br><span class="line">      handleRowValues(rsw, resultMap, <span class="keyword">null</span>, RowBounds.DEFAULT, parentMapping);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="keyword">if</span> (resultHandler == <span class="keyword">null</span>) &#123;</span><br><span class="line">        DefaultResultHandler defaultResultHandler = <span class="keyword">new</span> DefaultResultHandler(objectFactory);</span><br><span class="line">        handleRowValues(rsw, resultMap, defaultResultHandler, rowBounds, <span class="keyword">null</span>);</span><br><span class="line">        multipleResults.add(defaultResultHandler.getResultList());</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        handleRowValues(rsw, resultMap, resultHandler, rowBounds, <span class="keyword">null</span>);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">    <span class="comment">// issue #228 (close resultsets)</span></span><br><span class="line">    closeResultSet(rsw.getResultSet());</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 如果有嵌套的ResultMap 的话</span></span><br><span class="line">  <span class="comment">// 确保没有行绑定</span></span><br><span class="line">  <span class="comment">// 检查结果处理器</span></span><br><span class="line">  <span class="comment">// 如果没有的话，直接处理简单的ResultMap</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">handleRowValues</span><span class="params">(ResultSetWrapper rsw, ResultMap resultMap, ResultHandler&lt;?&gt; resultHandler, RowBounds rowBounds, ResultMapping parentMapping)</span> <span class="keyword">throws</span> SQLException </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (resultMap.hasNestedResultMaps()) &#123;</span><br><span class="line">      ensureNoRowBounds();</span><br><span class="line">      checkResultHandler();</span><br><span class="line">      handleRowValuesForNestedResultMap(rsw, resultMap, resultHandler, rowBounds, parentMapping);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      handleRowValuesForSimpleResultMap(rsw, resultMap, resultHandler, rowBounds, parentMapping);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+<p>handleResultSets 方法返回的是 collapseSingleResultList(multipleResults) ，它是什么呢？</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> List&lt;Object&gt; <span class="title">collapseSingleResultList</span><span class="params">(List&lt;Object&gt; multipleResults)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> multipleResults.size() == <span class="number">1</span> ? (List&lt;Object&gt;) multipleResults.get(<span class="number">0</span>) : multipleResults;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>它是判断的 multipleResults 的数量，如果数量是 1 ，就直接取位置为0的元素，如果不是1，那就返回 multipleResults 的真实数量</p>
+<p>那么 multipleResults 的数量是哪来的呢？</p>
+<p>它的值其实是处理结果集中传递进去的</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">handleResultSet(rsw, resultMap, multipleResults, <span class="keyword">null</span>);</span><br></pre></td></tr></table></figure>
+
+<p>然后在处理结果集的方法中对 multipleResults 进行添加</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">multipleResults.add(defaultResultHandler.getResultList());</span><br></pre></td></tr></table></figure>
+
+<p>下面我们来看一下返回的真实实现类 DefaultResultSetHandler 中的结构组成</p>
+<p><img src="http://www.justdojava.com/assets/images/2019/java/image-cxuan/mybatis/resultsethandler/01.png" alt></p>
+<p>在 DefaultResultSetHandler 中处理完结果映射，并把上述结构返回给调用的客户端，从而执行完成一条完整的SQL语句。</p>
+<p>文章参考：</p>
+<p><a href="https://blog.csdn.net/qq924862077/article/details/52704191" target="_blank" rel="noopener">https://blog.csdn.net/qq924862077/article/details/52704191</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+      <div>
+        <div id="wechat_subscriber" style="display: block; padding: 10px 0; margin: 20px auto; width: 100%; text-align: center">
+    <img id="wechat_subscriber_qcode" src="/uploads/cmower.jpg" alt="沉默王二 wechat" style="width: 200px; max-width: 100%;">
+    <div><b>沉默王二</b><br>微信扫描二维码，关注我的公众号。</div>
+</div>
+
+      </div>
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/java/" rel="tag"># java</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/08/20/2019-07-29-mybatis-secondcache/" rel="next" title="MyBatis 核心配置综述之 细说二级缓存">
+                <i class="fa fa-chevron-left"></i> MyBatis 核心配置综述之 细说二级缓存
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/08/20/2019-07-29-kafka-springboot/" rel="prev" title="springboot集成kafka示例">
+                springboot集成kafka示例 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/uploads/cmower.jpg" alt="沉默王二">
+            
+              <p class="site-author-name" itemprop="name">沉默王二</p>
+              <p class="site-description motion-element" itemprop="description">沉默王二，一个不止写代码的程序员，还写有趣有益的文字(Java,程序人生)，给不喜欢严肃的你。</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">18</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/qinggee" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:983436076@qq.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-qq"></i>E-Mail</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="http://www.zhihu.com/people/cmower" target="_blank" title="知乎">
+                      
+                        <i class="fa fa-fw fa-zhihu"></i>知乎</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#ResultSetHandler-简介"><span class="nav-number">1.</span> <span class="nav-text">ResultSetHandler 简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ResultSetHandler-创建"><span class="nav-number">2.</span> <span class="nav-text">ResultSetHandler 创建</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ResultSetHandler-处理结果映射"><span class="nav-number">3.</span> <span class="nav-text">ResultSetHandler 处理结果映射</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#DefaultResultSetHandler-源码解析"><span class="nav-number">4.</span> <span class="nav-text">DefaultResultSetHandler 源码解析</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 &mdash; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">沉默王二</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+  <div class="footer-custom">Hosted by <a target="_blank" href="https://github.com/qinggee">GitHub</a></div>
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
